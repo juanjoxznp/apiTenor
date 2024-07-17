@@ -1,31 +1,46 @@
-import { useState } from "react";
-import './Home.css';
-
-const URL = 'https://rickandmortyapi.com/api/character';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Home.css'; 
 
 export const Home = () => {
-    const [characters, setCharacters] = useState([]);
+  const [gifs, setGifs] = useState([]);
+  const [query, setQuery] = useState('');
 
-    const handleGetApi = async () => {
-        const response = await fetch(URL);
-        const data = await response.json();
-        setCharacters(data.results);
+  useEffect(() => {
+    const fetchGifs = async () => {
+      try {
+        const response = await axios.get('https://tenor.googleapis.com/v2/search', {
+          params: {
+            q: query || 'trending',
+            key: 'AIzaSyC6zKW8NbdAgZDrR1D459n_kFiPRK0jQUQ',
+            limit: 20
+          }
+        });
+        setGifs(response.data.results);
+      } catch (error) {
+        console.error('Error fetching the GIFs:', error);
+      }
     };
 
-    return (
-        <div className="container">
-            <button onClick={handleGetApi} className="btnCards">GENERAR CARDS</button>
-            <div className="characters">
+    fetchGifs(); 
+  }, [query]);
 
-                {characters.map(character => (
-                    <div key={character.id} className="character-card">
-                        <h3>{character.name}</h3>
-                        <img src={character.image} />
-                        <p>{character.gender}</p>
-                    </div>
-                ))}
-                
-            </div>
-        </div>
-    );
+  return (
+    <div className="container">
+      <h1>GIFS TENOR</h1>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search for GIFs"
+        className="search-input"
+      />
+      <div className="gif-container">
+        {gifs.map(gif => (
+          <img key={gif.id} src={gif.media_formats.gif.url} alt={gif.title} className="gif-image" />
+        ))}
+      </div>
+    </div>
+  );
 };
+
